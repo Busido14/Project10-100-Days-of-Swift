@@ -42,11 +42,39 @@ class ViewController: UICollectionViewController,
     }
     
     @objc func addNewPerson() {
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            let ac = UIAlertController(title: "Func", message: "Choose variants", preferredStyle: .alert)
+            let photos = UIAlertAction(title: "Photos", style: .default) { [weak self] _ in
+                self?.photoPic()
+            }
+            let camera = UIAlertAction(title: "Camera", style: .default) { [weak self] _  in
+                self?.cameraPic()
+            }
+            ac.addAction(photos)
+            ac.addAction(camera)
+            present(ac, animated: true)
+        } else {
+            photoPic()
+            
+        }
+    }
+    
+    func photoPic() {
         let picker = UIImagePickerController()
         picker.allowsEditing = true
         picker.delegate = self
         present(picker, animated: true)
     }
+    
+    func cameraPic() {
+        let picker = UIImagePickerController()
+        picker.allowsEditing = true
+        picker.delegate = self
+        picker.sourceType = .camera
+        present(picker, animated: true)
+    }
+    
+    
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         guard let image = info[.editedImage] as? UIImage else { return }
@@ -97,9 +125,9 @@ class ViewController: UICollectionViewController,
         present(ac, animated: true)
         
     }
-        @objc func deletePerson(_ collectionView: UICollectionView, indexPath: IndexPath) {
-             people.remove(at: indexPath.item)
-             collectionView.deleteItems(at: [indexPath])
-         }
+    @objc func deletePerson(_ collectionView: UICollectionView, indexPath: IndexPath) {
+        people.remove(at: indexPath.item)
+        collectionView.deleteItems(at: [indexPath])
     }
+}
 
