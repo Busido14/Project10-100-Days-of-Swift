@@ -11,20 +11,20 @@ class ViewController: UICollectionViewController,
                       UIImagePickerControllerDelegate,
                       UINavigationControllerDelegate {
     var people = [Person]()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewPerson))
         
     }
-
+    
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return people.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-       guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Person", for: indexPath) as? PersonCell else {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Person", for: indexPath) as? PersonCell else {
             fatalError("Unable to dequeue PersonCell.")
         }
         
@@ -38,16 +38,43 @@ class ViewController: UICollectionViewController,
         cell.imageView.layer.cornerRadius = 3
         cell.layer.cornerRadius = 7
         
-        
         return cell
     }
     
     @objc func addNewPerson() {
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            let ac = UIAlertController(title: "Func", message: "Choose variants", preferredStyle: .alert)
+            let photos = UIAlertAction(title: "Photos", style: .default) { [weak self] _ in
+                self?.photoPic()
+            }
+            let camera = UIAlertAction(title: "Camera", style: .default) { [weak self] _  in
+                self?.cameraPic()
+            }
+            ac.addAction(photos)
+            ac.addAction(camera)
+            present(ac, animated: true)
+        } else {
+            photoPic()
+            
+        }
+    }
+    
+    func photoPic() {
         let picker = UIImagePickerController()
         picker.allowsEditing = true
         picker.delegate = self
         present(picker, animated: true)
     }
+    
+    func cameraPic() {
+        let picker = UIImagePickerController()
+        picker.allowsEditing = true
+        picker.delegate = self
+        picker.sourceType = .camera
+        present(picker, animated: true)
+    }
+    
+    
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         guard let image = info[.editedImage] as? UIImage else { return }
@@ -73,17 +100,34 @@ class ViewController: UICollectionViewController,
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let person  = people[indexPath.item]
         
-        let ac = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
-        ac.addTextField()
+        let ac = UIAlertController(title: "Choose function", message: nil, preferredStyle: .actionSheet)
+        ac.addAction(UIAlertAction(title: "Rename person", style: .default) { (action) in self.renamePerson(person)
+        })
         
+        ac.addAction(UIAlertAction(title: "Delete", style: .default, handler: {action in self.deletePerson(collectionView, indexPath: indexPath)
+            
+        }))
+        present(ac, animated: true)
+        
+    }
+    
+    func renamePerson (_ person: Person) {
+        let ac = UIAlertController(title: "Write a new name", message: nil, preferredStyle: .alert)
+        ac.addTextField()
         ac.addAction(UIAlertAction(title: "OK", style: .default) {
             [weak self, weak ac] _ in
             guard let newName = ac?.textFields?[0].text else { return }
             person.name = newName
             self?.collectionView.reloadData()
         })
+        
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(ac, animated: true)
+        
+    }
+    @objc func deletePerson(_ collectionView: UICollectionView, indexPath: IndexPath) {
+        people.remove(at: indexPath.item)
+        collectionView.deleteItems(at: [indexPath])
     }
 }
 
